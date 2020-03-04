@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Inserto 
  * Description: Allows you to insert code or text in the header or footer
- * Version: 2.1.2
+ * Version: 2.2.0
  * Author: Newemage
  * Author URI: https://newemage.com
  * License: GPLv2 or later

@@ -20,11 +20,11 @@ if(!defined('WPINC'))
             <?php settings_fields( 'header-and-footer-scripts' ); ?>
 
             <h3 class="shfs-labels" for="shfs_insert_header">Scripts in &lt;head></h3>
-            <textarea style="width:98%;" rows="10" cols="57" id="insert_header" name="shfs_insert_header" placeholder="<script></script>"><?php echo esc_html( get_option( 'shfs_insert_header' ) ); ?></textarea>
+            <textarea style="width:98%;" rows="10" cols="57" class="inserto" id="insert_header" name="shfs_insert_header" placeholder="<script></script>"><?php echo esc_html( get_option( 'shfs_insert_header' ) ); ?></textarea>
             <p></p><hr />
 
             <h3 class="shfs-labels footerlabel" for="shfs_insert_footer">Scripts before &lt;/body></h3>
-            <textarea style="width:98%;" rows="10" cols="57" id="shfs_insert_footer" name="shfs_insert_footer" placeholder="<script></script>"><?php echo esc_html( get_option( 'shfs_insert_footer' ) ); ?></textarea>
+            <textarea style="width:98%;" rows="10" cols="57" class="inserto" id="shfs_insert_footer" name="shfs_insert_footer" placeholder="<script></script>"><?php echo esc_html( get_option( 'shfs_insert_footer' ) ); ?></textarea>
             <p></p>
 
           <p class="submit">
@@ -39,3 +39,22 @@ if(!defined('WPINC'))
     </div>
   </div>
 </div>
+<script>
+
+jQuery(document).ready(function($) {
+  $('.inserto').each(function(){
+  wp.codeEditor.initialize($(this), {
+    lineNumbers: true,
+    mode: "htmlmixed"
+  });
+  });
+})
+</script>
+<style>
+.CodeMirror {
+  border: 1px solid #ddd;
+}
+.CodeMirror-lint-markers, .CodeMirror-lint-marker-error, .CodeMirror-lint-marker-warning{
+  display:none !important
+}
+</style>

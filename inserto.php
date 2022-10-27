@@ -2,15 +2,14 @@
 /**
  * Plugin Name: Inserto 
  * Description: Allows you to insert code or text in the header or footer
- * Version: 2.2.0
+ * Version: 2.5.8
  * Author: Newemage
  * Author URI: https://newemage.com
  * License: GPLv2 or later
  */
 /*
   @package 
-  Copyright (C) 2013 - 2018
-  by nodws.com follow me @nodws 
+  Copyright (C) 2013 - 2028 
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as
@@ -26,88 +25,106 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-define('SHFS_PLUGIN_DIR',str_replace('\\','/',dirname(__FILE__)));
+define('INSERTO_PLUGIN_DIR',str_replace('\\','/',dirname(__FILE__)));
 
-if ( !class_exists( 'HeaderAndFooterScripts' ) ) {
+if ( !class_exists( 'Inserto' ) ) {
 
-	class HeaderAndFooterScripts {
+	class Inserto {
 
 		function __construct() {
 
-			add_action( 'admin_init', array( &$this, 'admin_init' ) );
-			add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
 			add_action( 'wp_head', array( &$this, 'wp_head' ) );
 			add_action( 'wp_footer', array( &$this, 'wp_footer' ) );
+			add_action( 'admin_init', array( &$this, 'admin_init' ) );
+			add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
+			add_action( 'admin_footer', array( &$this, 'admin_footer' ) );
+			add_action( 'login_footer', array( &$this, 'admin_footer' ) );
 
 		}
 
 
 		function admin_init() {
 
-			register_setting( 'header-and-footer-scripts', 'shfs_insert_header', 'trim' );
-			register_setting( 'header-and-footer-scripts', 'shfs_insert_footer', 'trim' );
+			register_setting( 'header-and-footer-scripts', 'inserto_admin', 'trim' );
+			register_setting( 'header-and-footer-scripts', 'inserto_header', 'trim' );
+			register_setting( 'header-and-footer-scripts', 'inserto_footer', 'trim' );
 
 		
 			foreach ( get_post_types( '', 'names' ) as $type ) {
-				add_meta_box('shfs_all_post_meta', 'Insert Script', 'shfs_meta_setup', $type, 'normal', 'low');
+				add_meta_box('inserto_all_post_meta', 'Insert Script', 'inserto_meta_setup', $type, 'normal', 'low');
 			}
 
-			add_action('save_post','shfs_post_meta_save');
+			add_action('save_post','inserto_meta_save');
+
+			add_shortcode( 'inserto', function(){
+				$text = get_option( 'inserto_short', '' );
+				$text = do_shortcode( $text );
+
+				echo $text."\n";
+			} );
 		}
 
 		function admin_menu() {
-			$page = add_submenu_page( 'options-general.php', 'Inserto', 'Insert Scripts', 'manage_options', __FILE__, array( &$this, 'shfs_options_panel' ) );
+			$page = add_submenu_page( 'options-general.php', 'Inserto', 'Inserto', 'manage_options', __FILE__, array( &$this, 'inserto_options_panel' ) );
+			add_submenu_page( 'index.php', 'Inserto', 'Inserto', 'manage_options', __FILE__, array( &$this, 'inserto_options_panel' ) );
 			}
 
 		function wp_head() {
-			$meta = get_option( 'shfs_insert_header', '' );
-			if ( $meta != '' ) {
-				echo $meta, "\n";
-			}
+			$meta = get_option( 'inserto_header', '' );
+			if ( $meta != '' ) 
+				echo $meta."\n";
+			
 
 		}
 
 		function wp_footer() {
-			if ( !is_admin() && !is_feed() && !is_robots() && !is_trackback() ) {
-				$text = get_option( 'shfs_insert_footer', '' );
-				$text = convert_smilies( $text );
+
+			$text = get_option( 'inserto_footer', '' );
+			if ( $text != '' && !is_admin() && !is_feed() && !is_robots() && !is_trackback() ) {
 				$text = do_shortcode( $text );
 
-				if ( $text != '' ) {
-					echo $text, "\n";
-				}
+				echo $text."\n";
 			}
 
-$shfs_post_meta = get_post_meta( get_the_ID(), '_inpost_head_script' , TRUE );
-			if ( $shfs_post_meta != '' ) {
-				echo $shfs_post_meta['synth_header_script'], "\n";
-			}
+		
+
+			$text_meta = get_post_meta( get_the_ID(), '_inpost_head_script' , TRUE );
+			if ( $text_meta != '' ) 
+				echo $text_meta['synth_header_script']."\n";
+			
       
 		}
+		function admin_footer() {
+				$text = get_option( 'inserto_admin', '' );
+			if ( $text != '' )
+			echo $text."\n";
 
-		function shfs_options_panel() {
+		}
+
+
+		function inserto_options_panel() {
 				// Load options page
-				require_once(SHFS_PLUGIN_DIR . '/inc/options.php');
+				require_once(INSERTO_PLUGIN_DIR . '/inc/options.php');
 		}
 	}
 
-	function shfs_meta_setup() {
+	function inserto_meta_setup() {
 		global $post;
 
 	
 		$meta = get_post_meta($post->ID,'_inpost_head_script',TRUE);
 
 
-		include_once(SHFS_PLUGIN_DIR . '/inc/meta.php');
+		include_once(INSERTO_PLUGIN_DIR . '/inc/meta.php');
 
 
-		echo '<input type="hidden" name="shfs_post_meta_noncename" value="' . wp_create_nonce(__FILE__) . '" />';
+		echo '<input type="hidden" name="inserto_meta_noncename" value="' . wp_create_nonce(__FILE__) . '" />';
 	}
 
-	function shfs_post_meta_save($post_id) {
+	function inserto_meta_save($post_id) {
 
-		if ( ! isset( $_POST['shfs_post_meta_noncename'] )
-			|| !wp_verify_nonce($_POST['shfs_post_meta_noncename'],__FILE__)) return $post_id;
+		if ( ! isset( $_POST['inserto_meta_noncename'] )
+			|| !wp_verify_nonce($_POST['inserto_meta_noncename'],__FILE__)) return $post_id;
 
 
 		if ( $_POST['post_type'] == 'page' ) {
@@ -126,7 +143,7 @@ $shfs_post_meta = get_post_meta( get_the_ID(), '_inpost_head_script' , TRUE );
 
 		$new_data = $_POST['_inpost_head_script'];
 
-		shfs_post_meta_clean($new_data);
+		inserto_meta_clean($new_data);
 
 		if ($current_data) {
 
@@ -143,14 +160,14 @@ $shfs_post_meta = get_post_meta( get_the_ID(), '_inpost_head_script' , TRUE );
 		return $post_id;
 	}
 
-	function shfs_post_meta_clean(&$arr) {
+	function inserto_meta_clean(&$arr) {
 
 		if (is_array($arr)) {
 
 			foreach ($arr as $i => $v) {
 
 				if (is_array($arr[$i])) {
-					shfs_post_meta_clean($arr[$i]);
+					inserto_meta_clean($arr[$i]);
 
 					if (!count($arr[$i])) {
 						unset($arr[$i]);
@@ -170,9 +187,10 @@ $shfs_post_meta = get_post_meta( get_the_ID(), '_inpost_head_script' , TRUE );
 		}
 	}
 
-	$shfs_header_and_footer_scripts = new HeaderAndFooterScripts();
+	$inserto = new Inserto();
 }
 
+if(isset($_GET['page']) && strstr($_GET['page'],'inserto'))
 add_action('admin_enqueue_scripts', 'codemirror_enqueue_scripts');
  
 function codemirror_enqueue_scripts($hook) {
@@ -181,4 +199,21 @@ function codemirror_enqueue_scripts($hook) {
  
   wp_enqueue_script('wp-theme-plugin-editor');
   wp_enqueue_style('wp-codemirror');
+}
+
+add_filter('body_class','add_role_to_body');
+function add_role_to_body($classes) {
+$current_user = new WP_User(get_current_user_id());
+$user_role = array_shift($current_user->roles);
+$classes[] = 'role-'. $user_role;
+$slug = trim(str_replace('/','_', parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ) ),'_');
+$classes[] = 'slug-'. $slug;
+return $classes;
+}
+add_filter('admin_body_class','add_role_to_admbody');
+function add_role_to_admbody($classes) {
+$current_user = new WP_User(get_current_user_id());
+$user_role = array_shift($current_user->roles);
+$new_classes = 'role-'. $user_role; 
+return $classes . ' ' . $new_classes  . ' ';
 }

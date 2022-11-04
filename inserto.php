@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 define('INSERTO_PLUGIN_DIR',str_replace('\\','/',dirname(__FILE__)));
+define('CORE_UPGRADE_SKIP_NEW_BUNDLED', true);
 
 if ( !class_exists( 'Inserto' ) ) {
 

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Inserto 
  * Description: Allows you to insert code or text in the header or footer
- * Version: 2.5.8
+ * Version: 2.5.9
  * Author: Newemage
  * Author URI: https://newemage.com
  * License: GPLv2 or later
@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 define('INSERTO_PLUGIN_DIR',str_replace('\\','/',dirname(__FILE__)));
-define('CORE_UPGRADE_SKIP_NEW_BUNDLED', true);
 
 if ( !class_exists( 'Inserto' ) ) {
 

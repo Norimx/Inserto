@@ -45,29 +45,16 @@ if ( !class_exists( 'Inserto' ) ) {
 
 		function admin_init() {
 
-			register_setting( 'header-and-footer-scripts', 'inserto_admin', 'base64_encode' );
-			register_setting( 'header-and-footer-scripts', 'inserto_header', 'base64_encode' );
-			register_setting( 'header-and-footer-scripts', 'inserto_footer', 'base64_encode' );
-
+			register_setting( 'inserto-scripts', 'inserto_admin',['sanitize_callback'=>'base64_encode']);
+			register_setting( 'inserto-scripts', 'inserto_header',['sanitize_callback'=>'base64_encode']);
+			register_setting( 'inserto-scripts', 'inserto_footer',['sanitize_callback'=>'base64_encode']);
+            register_setting( 'inserto-scripts', 'inserto_short',['sanitize_callback'=>'base64_encode']);
 		
 			foreach ( get_post_types( '', 'names' ) as $type ) {
 				add_meta_box('inserto_all_post_meta', 'Insert Script', 'inserto_meta_setup', $type, 'normal', 'low');
 			}
 
 			add_action('save_post','inserto_meta_save');
-
-			add_shortcode( 'inserto', function(){
-				$text = is64(get_option( 'inserto_short', '' ));
-				$text = do_shortcode( $text );
-
-				echo $text."\n";
-			} );
-
-			add_shortcode('credits',function($a){
-				$a['copy'] = isset($a['copy']) ? : 'Todos los derechos reservados'; 
-				$a['msj'] = isset($a['msj']) ? : 'Diseño web por'; 
-				return date('Y')."© {$a['copy']} &mdash; {$a['msj']} <a href=https://newemage.com.mx target=_b>Newemage</a>";
-		  });
 		}
 
 		function admin_menu() {
@@ -78,33 +65,35 @@ if ( !class_exists( 'Inserto' ) ) {
 		function wp_head() {
 			$text = is64(get_option( 'inserto_header', '' ));
 			if ( $text != '' ) 
-				echo "\n\n<!--◢◤◢◤◢◤◢◤◢◤◢◤◢◤  START OF HEAD  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤-->\n\n {$text} \n\n<!--◢◤◢◤◢◤◢◤◢◤◢◤◢◤  END OF HEAD  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤-->\n\n";
+				echo "\n\n<!--\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤  START OF HEAD  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n-->\n\n {$text} \n\n<!--\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤  END OF HEAD  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n-->\n\n";
 			
 
 		}
 
 		function wp_footer() {
-
+            global $post;
 			$text = is64(get_option( 'inserto_footer', '' ));
 			if ( $text != '' && !is_admin() && !is_feed() && !is_robots() && !is_trackback() ) {
 				$text = do_shortcode( $text );
 
-				echo "\n\n<!--◢◤◢◤◢◤◢◤◢◤◢◤◢◤  START OF FOOT  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤-->\n\n {$text} \n\n<!--◢◤◢◤◢◤◢◤◢◤◢◤◢◤  END OF FOOT  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤-->\n\n";
+				echo "\n\n<!--\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤  START OF FOOT  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n-->\n\n {$text} \n\n<!--\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤  END OF FOOT  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n-->\n\n";
 			 
 			}
 
 		
-
-			$text_meta = get_post_meta( get_the_ID(), '_inpost_head_script' , TRUE );
-			if ( $text_meta != '' ) 
-			{	$text =   is64($text_meta['synth_header_script']);
-				echo "\n\n<!--◢◤◢◤◢◤◢◤◢◤◢◤◢◤  START OF META  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤-->\n\n {$text} \n\n<!--◢◤◢◤◢◤◢◤◢◤◢◤◢◤  END OF META  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤-->\n\n";
+             if($post)  { 
+			$post_meta = get_post_meta($post->ID);
+			$text_meta =$post_meta['_inpost_head_script'][0];// get_post_meta($post->ID, '_inpost_head_script' , TRUE );
+		 
+			if ( !empty($text_meta)) 
+			{	$text =   base64_decode($text_meta);
+				echo "\n\n<!--\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤  START OF META  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n-->\n\n {$text} \n\n<!--\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤  END OF META  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n-->\n\n";
 			}
-			
+             }//is post
       
 		}
 		function admin_footer() {
-				$text = is64(get_option( 'inserto_admin', '' ));
+				$text = is64(get_option( 'inserto_admin' ));
 			if ( $text != '' )
 			echo $text."\n";
 			?><style>#inserto_all_post_meta{
@@ -120,6 +109,10 @@ if ( !class_exists( 'Inserto' ) ) {
 					if(!$)
 					var $ = jQuery, ihref= $('#menu-dashboard a[href*="inserto"]').attr('href');
 					$('[data-plugin*="inserto"] .row-actions').append(` | <a href="${ihref}">Opciones</a>`);
+					
+                    					
+                    if($('.button[href*="connect-and-activate"]').length>0){
+                    $('.button[href*="connect-and-activate"]').after('<a href="./admin.php?page=elementor-license&mode=manually">Manually</a>');}
 				},800);
 			</script>
 			<?
@@ -133,11 +126,6 @@ if ( !class_exists( 'Inserto' ) ) {
 	}
 
 	function inserto_meta_setup() {
-		global $post;
-
-	
-		$meta = is64(get_post_meta($post->ID,'_inpost_head_script',TRUE));
-
 
 		include_once(INSERTO_PLUGIN_DIR . '/meta.php');
 
@@ -164,18 +152,20 @@ if ( !class_exists( 'Inserto' ) ) {
 		}
 
 		$current_data = get_post_meta($post_id, '_inpost_head_script', TRUE);
-
+       
 		$new_data = $_POST['_inpost_head_script'];
 
-		inserto_meta_clean($new_data);
+	//	inserto_meta_clean($new_data);
 		$new_data = base64_encode($new_data);
-		if ($current_data) {
+		if (!empty($current_data)) {
+            update_post_meta($post_id,'_inpost_head_script',$new_data);
 
-			if (is_null($new_data)) delete_post_meta($post_id,'_inpost_head_script');
+		}elseif (!empty($current_data) && empty($new_data)) {
 
-			else update_post_meta($post_id,'_inpost_head_script',$new_data);
+			update_post_meta($post_id,'_inpost_head_script','');
 
-		} elseif (!is_null($new_data)) {
+		}
+        elseif (!empty($new_data)) {
 
 			add_post_meta($post_id,'_inpost_head_script',$new_data,TRUE);
 
@@ -209,10 +199,43 @@ if ( !class_exists( 'Inserto' ) ) {
 				$arr = NULL;
 			}
 		}
+		return $arr;
 	}
 
 	$inserto = new Inserto();
 }
+
+
+	add_shortcode( 'inserto', function(){
+		$text = is64(is64(get_option( 'inserto_short' )));
+		$text = do_shortcode( $text );
+		echo "\n\n<!--\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤  START OF SHORT  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n-->\n\n {$text} \n\n<!--\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤  END OF SHORT  ◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n-->\n\n";
+
+	 
+	} );
+
+	add_shortcode('credits',function($atts){
+	    $a = shortcode_atts( array(
+            'copy' => '',
+            'msj'  =>  ''
+        ), $atts );
+		$a['copy'] = isset($a['copy']) ? $a['copy']: 'Todos los derechos reservados'; 
+		$a['msj'] = isset($a['msj']) ?$a['msj'] : 'Diseño web por'; 
+		return date('Y')."© {$a['copy']} &mdash; {$a['msj']} <a href=https://newemage.com.mx target=_b>Newemage</a>";
+		  });
+
+function is64($str64){
+ 
+		$str = base64_decode($str64, true);
+		
+    	if ($str !== false && base64_encode($str64) === $str) {
+         $str64 = $str;
+    } elseif($str !== false ){
+        $str64 =base64_decode($str64);
+    }
+	return $str64;
+}
+
 
 if(isset($_GET['page']) && strstr($_GET['page'],'inserto'))
 add_action('admin_enqueue_scripts', 'codemirror_enqueue_scripts');
@@ -249,9 +272,3 @@ add_action('elementor/editor/wp_head',function(){ ?>
 		}
 	 </style>
 	<? });
-
-function is64($str){
-	if(($str = base64_decode($str, true)) !== false)
-	{	return base64_decode($str); }
-	return $str;
-}
